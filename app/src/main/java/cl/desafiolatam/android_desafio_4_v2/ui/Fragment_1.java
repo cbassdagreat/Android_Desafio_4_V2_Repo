@@ -65,6 +65,7 @@ public class Fragment_1 extends Fragment {
         ivPic = view.findViewById(R.id.ivPic);
 
 
+
         btnCargar.setOnClickListener(v -> {
 
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -85,9 +86,12 @@ public class Fragment_1 extends Fragment {
         //aquí es cuando se hace el launch.
         if (result != null && result.getResultCode() == RESULT_OK) {
 
+            btnNext.setVisibility(View.VISIBLE);
             Bundle extras = result.getData().getExtras();
             Bitmap img = (Bitmap) extras.get("data");
             ivPic.setImageBitmap(img);
+
+
 
         } });
 }
