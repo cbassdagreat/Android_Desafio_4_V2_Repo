@@ -1,10 +1,15 @@
 package cl.desafiolatam.android_desafio_4_v2.ui;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.AspectRatio;
@@ -37,12 +42,10 @@ import cl.desafiolatam.android_desafio_4_v2.R;
 
 public class Fragment_1 extends Fragment {
 
-    
+
     private Button btnCargar;
     private Button btnNext;
-    boolean validacion = false;
-    static Uri cam_uri;
-    private PreviewView previewView;
+    private ImageView ivPic;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -59,12 +62,14 @@ public class Fragment_1 extends Fragment {
 
         btnCargar = view.findViewById(R.id.btnCargar);
         btnNext = view.findViewById(R.id.btnNext);
-        previewView = view.findViewById(R.id.preview_view);
-        setCameraProviderListener();
+        ivPic = view.findViewById(R.id.ivPic);
 
 
         btnCargar.setOnClickListener(v -> {
 
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            start.launch(intent);
 
 
         });
@@ -76,39 +81,13 @@ public class Fragment_1 extends Fragment {
 
     }
 
-    public void setCameraProviderListener() {
+    ActivityResultLauncher<Intent> start = registerForActivityResult( new ActivityResultContracts.StartActivityForResult(), result -> {
+        //aquí es cuando se hace el launch.
+        if (result != null && result.getResultCode() == RESULT_OK) {
 
-        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext());
-        cameraProviderFuture.addListener(() -> {
+            Bundle extras = result.getData().getExtras();
+            Bitmap img = (Bitmap) extras.get("data");
+            ivPic.setImageBitmap(img);
 
-            try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                bindPreview(cameraProvider);
-
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-
-            }
-
-
-        }, ContextCompat.getMainExecutor(requireContext()));
-
-
-    }
-
-    public void bindPreview(ProcessCameraProvider cameraProvider) {
-        previewView.setImplementationMode(PreviewView.ImplementationMode.PERFORMANCE);
-
-        Preview preview = new Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3).setTargetRotation(previewView.getDisplay().getRotation()).build();
-
-        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
-
-        preview.setSurfaceProvider(previewView.getSurfaceProvider());
-
-        UseCaseGroup useCaseGroup = new UseCaseGroup.Builder().addUseCase(preview).build();
-
-        cameraProvider.bindToLifecycle(this, cameraSelector, preview);
-
-
-    }
+        } });
 }
